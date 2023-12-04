@@ -10,7 +10,7 @@ namespace NewtonLibrary_Gabriel.Models
     {
         public int Id { get; set; }
         public string CardNumber { get; set; }
-        public int Pin { get; set; }
+        public string Pin { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
     }
