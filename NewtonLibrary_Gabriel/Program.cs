@@ -11,45 +11,50 @@ namespace NewtonLibrary_Gabriel
     {
         static void Main(string[] args)
         {
-            // CompaniorHelper bugs out with several lines as question string
-            Console.WriteLine("What would you like to do?\n" +
-                "1. Create an author\n" +
-                "2. Create a book\n" +
-                "3. Create a new borrower\n" +
-                "4. Loan a book\n" +
-                "5. Return a book\n" +
-                "6. Remove item (borrowers, books, authors)");
-
-            ConsoleCompanionHelper cc = new();
-            int choice;
-            do
+            while (true) // Always keep going unless user quits
             {
-                choice = cc.AskForInt("");
-                if (choice > 6 || choice < 1)
-                    Console.WriteLine("Number must be between 1-6.");
-            } while (choice > 6 || choice < 1);
+                // CompaniorHelper bugs out with several lines as question string
+                Console.WriteLine("What would you like to do?\n" +
+                    "1. Create an author\n" +
+                    "2. Create a book\n" +
+                    "3. Create a new borrower\n" +
+                    "4. Loan a book\n" +
+                    "5. Return a book\n" +
+                    "6. Remove item (borrowers, books, authors)");
 
-            Context context = new Context();
-            switch (choice)
-            {
-                case 1:
-                    CreateAuthor(cc, context);
-                    break;
-                case 2:
-                    CreateBook(cc, context);
-                    break;
-                case 3:
-                    CreateBorrower(cc, context);
-                    break;
-                case 4:
-                    LoanBook(cc, context);
-                    break;
-                case 5:
-                    ReturnBook(cc, context);
-                    break;
-                case 6:
-                    RemoveItem(cc, context);
-                    break;
+                ConsoleCompanionHelper cc = new();
+
+                // User selects option
+                int choice;
+                do
+                {
+                    choice = cc.AskForInt("");
+                    if (choice > 6 || choice < 1)
+                        Console.WriteLine("Number must be between 1-6.");
+                } while (choice > 6 || choice < 1);
+
+                Context context = new Context();
+                switch (choice)
+                {
+                    case 1:
+                        CreateAuthor(cc, context);
+                        break;
+                    case 2:
+                        CreateBook(cc, context);
+                        break;
+                    case 3:
+                        CreateBorrower(cc, context);
+                        break;
+                    case 4:
+                        LoanBook(cc, context);
+                        break;
+                    case 5:
+                        ReturnBook(cc, context);
+                        break;
+                    case 6:
+                        RemoveItem(cc, context);
+                        break;
+                }
             }
         }
 
@@ -66,6 +71,8 @@ namespace NewtonLibrary_Gabriel
 
             context.Authors.Add(newAuthor);
             context.SaveChanges();
+
+            Console.WriteLine("Author succesfully created\n");
         }
 
         private static void CreateBook(ConsoleCompanionHelper cc, Context context)
@@ -74,6 +81,7 @@ namespace NewtonLibrary_Gabriel
             int bookRating = cc.AskForInt("Enter book rating: ");
             string ISBN = cc.AskForString("Enter book ISBN: ");
 
+            // Keep asking for date until correct format is inputted
             DateTime bookReleaseDate;
             do
             {
@@ -95,6 +103,8 @@ namespace NewtonLibrary_Gabriel
 
             context.Books.Add(newBook);
             context.SaveChanges();
+
+            Console.WriteLine("Book sucessfully created\n");
         }
 
         private static void CreateBorrower(ConsoleCompanionHelper cc, Context context)
@@ -114,6 +124,8 @@ namespace NewtonLibrary_Gabriel
 
             context.LibraryCards.Add(newBorrower);
             context.SaveChanges();
+
+            Console.WriteLine("Borrower sucessfully created\n");
         }
 
         private static void LoanBook(ConsoleCompanionHelper cc, Context context)
@@ -122,8 +134,11 @@ namespace NewtonLibrary_Gabriel
             int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
             bool isLoaned = context.Loans.Any(loan => loan.BookId == bookId && libraryCardId == loan.LibraryCardId);
-            if(isLoaned) // User has already borrowed this book, don't allow it again.
+            if (isLoaned)
+            {
+                Console.WriteLine("This person has already loaned this book.\n");
                 return;
+            }
 
             Loan newLoan = new Loan
             {
@@ -135,14 +150,18 @@ namespace NewtonLibrary_Gabriel
 
             context.Loans.Add(newLoan);
             context.SaveChanges();
+
+            Console.WriteLine("Book loan successfully created\n");
         }
 
 
         private static void ReturnBook(ConsoleCompanionHelper cc, Context context)
         {
+            // User inputs the book title and library card
             int bookId = RequestBookIdFromName(cc, context);
             int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
+            // Get a list of the loaned books (in case there is several instances of same book for some reason)
             List<Loan> loansToUpdate = context.Loans
                 .Where(loan => loan.BookId == bookId && libraryCardId == loan.LibraryCardId)
                 .ToList();
@@ -154,6 +173,8 @@ namespace NewtonLibrary_Gabriel
             }
 
             context.SaveChanges();
+
+            Console.WriteLine("Book successfully returned\n");
         }
 
         private static void RemoveItem(ConsoleCompanionHelper cc, Context context)
@@ -163,6 +184,7 @@ namespace NewtonLibrary_Gabriel
             "2. A book\n" +
             "3. A borrower");
 
+            // Keep going until user enters a correct input option
             int choice;
             do
             {
@@ -171,7 +193,7 @@ namespace NewtonLibrary_Gabriel
                     Console.WriteLine("Number must be between 1-3.");
             } while (choice > 3 || choice < 1);
 
-            if(choice == 1)
+            if(choice == 1) // Remove author
             {
                 string authorName = cc.AskForString("Enter name of author in the format: (FirstName LastName): ").Trim().ToLower();
                 string[] splittedName = authorName.Split(' ');
@@ -179,8 +201,9 @@ namespace NewtonLibrary_Gabriel
                 if (splittedName.Length < 2) // Not valid name format
                     return;
 
+                // Get the author with the corresponding first and lastname.
                 Author? removedAuthor = context.Authors.SingleOrDefault(author => author.FirstName.ToLower() == splittedName[0] && author.LastName.ToLower() == splittedName[1]);
-                if(removedAuthor != null)
+                if(removedAuthor != null) // Author exists
                 {
                     context.Authors.Remove(removedAuthor);
                     context.SaveChanges();
@@ -192,7 +215,7 @@ namespace NewtonLibrary_Gabriel
                     Console.WriteLine("No such author found.");
                 }
             }
-            if(choice == 2)
+            if(choice == 2) // Remove book
             {
                 int bookId = RequestBookIdFromName(cc, context);
 
@@ -209,7 +232,7 @@ namespace NewtonLibrary_Gabriel
                     Console.WriteLine("No such book found.");
                 }
             }
-            if(choice == 3)
+            if(choice == 3) // Remove borrower (library card)
             {
                 int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
