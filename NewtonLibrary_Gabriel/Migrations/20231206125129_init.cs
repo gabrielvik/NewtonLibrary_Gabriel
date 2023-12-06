@@ -48,7 +48,7 @@ namespace NewtonLibrary_Gabriel.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CardNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Pin = table.Column<int>(type: "int", nullable: false),
+                    Pin = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
@@ -76,32 +76,6 @@ namespace NewtonLibrary_Gabriel.Migrations
                     table.ForeignKey(
                         name: "FK_AuthorBook_Books_BooksId",
                         column: x => x.BooksId,
-                        principalTable: "Books",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "BookAuthors",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    AuthorId = table.Column<int>(type: "int", nullable: false),
-                    BookId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BookAuthors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_BookAuthors_Authors_AuthorId",
-                        column: x => x.AuthorId,
-                        principalTable: "Authors",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_BookAuthors_Books_BookId",
-                        column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -142,16 +116,6 @@ namespace NewtonLibrary_Gabriel.Migrations
                 column: "BooksId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookAuthors_AuthorId",
-                table: "BookAuthors",
-                column: "AuthorId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BookAuthors_BookId",
-                table: "BookAuthors",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Loans_BookId",
                 table: "Loans",
                 column: "BookId");
@@ -167,9 +131,6 @@ namespace NewtonLibrary_Gabriel.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AuthorBook");
-
-            migrationBuilder.DropTable(
-                name: "BookAuthors");
 
             migrationBuilder.DropTable(
                 name: "Loans");

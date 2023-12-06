@@ -12,8 +12,8 @@ using NewtonLibrary_Gabriel.Data;
 namespace NewtonLibrary_Gabriel.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20231205073357_init3")]
-    partial class init3
+    [Migration("20231206125129_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

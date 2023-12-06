@@ -47,7 +47,7 @@ namespace NewtonLibrary_Gabriel
                         dataAccess.CreateBook(cc, context);
                         break;
                     case 3:
-                        dataAccess.AssociateAuthorsWithBook(cc, context);
+                        dataAccess.ConnectAuthorsWithBook(cc, context);
                         break;
                     case 4:
                         dataAccess.CreateBorrower(cc, context);

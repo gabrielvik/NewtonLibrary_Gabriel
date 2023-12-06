@@ -55,7 +55,7 @@ namespace NewtonLibrary_Gabriel.Data
             Console.WriteLine("Book sucessfully created\n");
         }
 
-        public void AssociateAuthorsWithBook(ConsoleCompanionHelper cc, Context context)
+        public void ConnectAuthorsWithBook(ConsoleCompanionHelper cc, Context context)
         {
             string bookTitle = cc.AskForString("Enter the title of the book: ");
 
@@ -75,7 +75,7 @@ namespace NewtonLibrary_Gabriel.Data
             string authorNames = cc.AskForString("Enter author names (comma-separated): ");
             string[] authorNamesArray = authorNames.Split(',');
 
-            // Create or associate authors with the book
+            // Connect authors with the book
             foreach (var authorName in authorNamesArray)
             {
                 string trimmedAuthorName = authorName.Trim();
@@ -84,14 +84,14 @@ namespace NewtonLibrary_Gabriel.Data
 
                 if (author == null)
                 {
-                    // Create a new author if not found
-                    string[] nameParts = trimmedAuthorName.Split(' ');
-                    if (nameParts.Length >= 2)
+                    // Found actor that isn't already connected to the book
+                    string[] splittedName = trimmedAuthorName.Split(' ');
+                    if (splittedName.Length >= 2)
                     {
                         author = new Author
                         {
-                            FirstName = nameParts[0],
-                            LastName = nameParts[1]
+                            FirstName = splittedName[0],
+                            LastName = splittedName[1]
                         };
 
                         context.Authors.Add(author);
@@ -103,12 +103,10 @@ namespace NewtonLibrary_Gabriel.Data
                     }
                 }
 
-                // Associate the author with the book
                 existingBook.Authors.Add(author);
             }
 
             context.SaveChanges();
-
             Console.WriteLine($"Authors successfully associated with the book '{existingBook.Title}'.");
         }
 
@@ -260,8 +258,7 @@ namespace NewtonLibrary_Gabriel.Data
         {
             using (Context context = new Context())
             {
-
-                // Clear existing data
+                // Remove existing stuff
                 context.Authors.RemoveRange(context.Authors);
                 context.Books.RemoveRange(context.Books);
                 context.LibraryCards.RemoveRange(context.LibraryCards);
@@ -316,7 +313,7 @@ namespace NewtonLibrary_Gabriel.Data
                 seededBook04.Authors = new List<Author>() { seededAuthor02 };
                 context.Books.Add(seededBook04);
 
-                context.SaveChanges();
+                context.SaveChanges(); // Save in between 
 
                 LibraryCard seededLibraryCard01 = new LibraryCard();
                 seededLibraryCard01.CardNumber = "84741823";
@@ -350,6 +347,8 @@ namespace NewtonLibrary_Gabriel.Data
                 context.Loans.Add(seededLoan02);
 
                 context.SaveChanges();
+
+                Console.WriteLine("Done!");
             }
         }
 
