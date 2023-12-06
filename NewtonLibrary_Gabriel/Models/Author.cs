@@ -12,6 +12,7 @@ namespace NewtonLibrary_Gabriel.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
+        // Associate the books with the author (Many-To-Many relation)
         public ICollection<Book> Books { get; set; }
     }
 }
