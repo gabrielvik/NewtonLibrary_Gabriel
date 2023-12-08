@@ -22,18 +22,13 @@ namespace NewtonLibrary_Gabriel
                     "5. Loan a book\n" +
                     "6. Return a book\n" +
                     "7. Remove item (borrowers, books, authors)\n" +
-                    "8. DEV: Seed database (Will remove all current data in DB, and replace it with stuff in Seed())");
+                    "8. Show loan history (for book or borrower)\n" +
+                    "9. DEV: Seed database (Will remove all current data in DB, and replace it with stuff in Seed())");
 
                 ConsoleCompanionHelper cc = new ConsoleCompanionHelper();
 
                 // User selects option
-                int choice;
-                do
-                {
-                    choice = cc.AskForInt("");
-                    if (choice > 8 || choice < 1)
-                        Console.WriteLine("Number must be between 1-8.");
-                } while (choice > 8 || choice < 1);
+                int choice = DataAccess.GetIntChoice(cc, 1, 9);
 
                 // Run the desired option in dataaccess
                 Context context = new Context();
@@ -62,6 +57,9 @@ namespace NewtonLibrary_Gabriel
                         dataAccess.RemoveItem(cc, context);
                         break;
                     case 8:
+                        dataAccess.ShowBorrowHistory(cc, context);
+                        break;
+                    case 9:
                         dataAccess.Seed();
                         break;
                 }

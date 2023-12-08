@@ -1,6 +1,9 @@
 ﻿using ConsoleCompanion;
 using NewtonLibrary_Gabriel.Models;
 using System.Globalization;
+using System.Net;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace NewtonLibrary_Gabriel.Data
 {
@@ -136,6 +139,9 @@ namespace NewtonLibrary_Gabriel.Data
             int bookId = RequestBookIdFromName(cc, context);
             int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
+            if (libraryCardId == -1)
+                return;
+
             bool isLoaned = context.Loans.Any(loan => loan.BookId == bookId && libraryCardId == loan.LibraryCardId);
             if (isLoaned)
             {
@@ -164,6 +170,9 @@ namespace NewtonLibrary_Gabriel.Data
             int bookId = RequestBookIdFromName(cc, context);
             int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
+            if (libraryCardId == -1)
+                return;
+
             // Get a list of the loaned books (in case there is several instances of same book for some reason)
             List<Loan> loansToUpdate = context.Loans
                 .Where(loan => loan.BookId == bookId && libraryCardId == loan.LibraryCardId)
@@ -188,13 +197,7 @@ namespace NewtonLibrary_Gabriel.Data
             "3. A borrower");
 
             // Keep going until user enters a correct input option
-            int choice;
-            do
-            {
-                choice = cc.AskForInt("");
-                if (choice > 3 || choice < 1)
-                    Console.WriteLine("Number must be between 1-3.");
-            } while (choice > 3 || choice < 1);
+            int choice = GetIntChoice(cc, 1, 3);
 
             if (choice == 1) // Remove author
             {
@@ -239,6 +242,9 @@ namespace NewtonLibrary_Gabriel.Data
             {
                 int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
 
+                if (libraryCardId == -1)
+                    return;
+
                 LibraryCard? removedBorrower = context.LibraryCards.SingleOrDefault(libraryCard => libraryCard.Id == libraryCardId);
                 if (removedBorrower != null)
                 {
@@ -251,6 +257,82 @@ namespace NewtonLibrary_Gabriel.Data
                 {
                     Console.WriteLine("No such borrower found.");
                 }
+            }
+        }
+
+        public void ShowBorrowHistory(ConsoleCompanionHelper cc, Context context)
+        {
+            Console.WriteLine("For what would you like to view the history?\n" +
+            "1. A borrower\n" +
+            "2. A book");
+
+            // Keep going until user enters a correct input option
+            int choice = GetIntChoice(cc, 1, 2);
+
+            if(choice == 1)
+            {
+                int libraryCardId = RequestLibraryCardIdFromCardNumber(cc, context);
+
+                if (libraryCardId == -1)
+                    return;
+
+                // Get loans from corresponding library card
+                List<Loan>? loaned = context.Loans
+                    .Where(loan => loan.LibraryCardId == libraryCardId)
+                    .ToList();
+
+                if(loaned == null || loaned.Count == 0)
+                {
+                    Console.WriteLine("No loans found for this library card.");
+                    return;
+                }
+
+                Console.WriteLine("Loaned books:");
+                for(int i = 0; i < loaned.Count; i++)
+                {
+                    // The book which has been borrowed in this loan
+                    Book? loanedBook = context.Books.FirstOrDefault(book => book.Id == loaned[i].BookId);
+                    if(loanedBook == null)
+                        continue;
+
+                    if (loaned[i].IsBorrowed)
+                        Console.WriteLine($"{i + 1}. {loanedBook.Title}, loaned at {loaned[i].LoanDate}, and is still borrowed.");
+                    else
+                        Console.WriteLine($"{i + 1}. {loanedBook.Title}, loaned at {loaned[i].LoanDate}, and it was returned at {loaned[i].ReturnDate}.");
+                }
+
+            }
+            if(choice == 2)
+            {
+                int bookId = RequestBookIdFromName(cc, context);
+
+                Book? loanedBook = context.Books
+                    .Where(book => book.Id == bookId)
+                    .FirstOrDefault();
+
+                if (loanedBook == null)
+                    return;
+
+                // All the loans of the book
+                List<Loan>? loaned = context.Loans
+                    .Where(loan => loan.BookId == bookId)
+                    .ToList();
+
+                Console.WriteLine($"All loans for the book {loanedBook.Title}");
+                for (int i = 0; i < loaned.Count; i++)
+                {
+                    // The borrower of the loan
+                    LibraryCard? libraryCard = context.LibraryCards.FirstOrDefault(card => card.Id == loaned[i].LibraryCardId);
+                    
+                    if (libraryCard == null)
+                        continue;
+
+                    if (loaned[i].IsBorrowed)
+                        Console.WriteLine($"{i + 1}. loan by {libraryCard.FirstName} {libraryCard.LastName}. Loaned at {loaned[i].LoanDate}, not yet returned.");
+                    else
+                        Console.WriteLine($"{i + 1}. loan by {libraryCard.FirstName} {libraryCard.LastName}. Loaned at {loaned[i].LoanDate}, returned at {loaned[i].ReturnDate}");
+                }
+
             }
         }
 
@@ -281,75 +363,98 @@ namespace NewtonLibrary_Gabriel.Data
                 seededAuthor03.LastName = "Dostoevsky";
                 context.Authors.Add(seededAuthor03);
 
-                Book seededBook01 = new Book();
-                seededBook01.Title = "Harry Potter and the Sorcerer's Stone";
-                seededBook01.ReleaseDate = new DateTime(1998, 09, 01);
-                seededBook01.Isbn = "059035342X";
-                seededBook01.Rating = 9;
-                seededBook01.Authors = new List<Author>() { seededAuthor01 };
-                context.Books.Add(seededBook01);
+                List<Book> seededBooks = new List<Book>();
 
-                Book seededBook02 = new Book();
-                seededBook02.Title = "Harry Potter and the Chamber of Secrets";
-                seededBook02.ReleaseDate = new DateTime(1998, 07, 02);
-                seededBook02.Isbn = "0439064872";
-                seededBook02.Rating = 7;
-                seededBook02.Authors = new List<Author>() { seededAuthor01 };
-                context.Books.Add(seededBook02);
-
-                Book seededBook03 = new Book();
-                seededBook03.Title = "Crime and Punishment";
-                seededBook03.ReleaseDate = new DateTime(1866, 12, 01);
-                seededBook03.Isbn = "0486415872";
-                seededBook03.Rating = 10;
-                seededBook03.Authors = new List<Author>() { seededAuthor03 };
-                context.Books.Add(seededBook03);
-
-                Book seededBook04 = new Book();
-                seededBook04.Title = "The Lord of the Rings";
-                seededBook04.ReleaseDate = new DateTime(1954, 07, 27);
-                seededBook04.Isbn = "9780544003415";
-                seededBook04.Rating = 10;
-                seededBook04.Authors = new List<Author>() { seededAuthor02 };
-                context.Books.Add(seededBook04);
+                seededBooks.Add(new Book
+                {
+                    Title = "Harry Potter and the Sorcerer's Stone",
+                    ReleaseDate = new DateTime(1998, 09, 01),
+                    Isbn = "059035342X",
+                    Rating = 9,
+                    Authors = new List<Author> { seededAuthor01 }
+                });
+                context.Books.Add(seededBooks[0]);
+                seededBooks.Add(new Book
+                {
+                    Title = "Harry Potter and the Chamber of Secrets",
+                    ReleaseDate = new DateTime(1998, 07, 02),
+                    Isbn = "0439064872",
+                    Rating = 7,
+                    Authors = new List<Author> { seededAuthor01 }
+                });
+                context.Books.Add(seededBooks[1]);
+                seededBooks.Add(new Book
+                {
+                    Title = "Crime and Punishment",
+                    ReleaseDate = new DateTime(1866, 12, 01),
+                    Isbn = "0486415872",
+                    Rating = 10,
+                    Authors = new List<Author> { seededAuthor03 }
+                });
+                context.Books.Add(seededBooks[2]);
+                seededBooks.Add(new Book
+                {
+                    Title = "The Lord of the Rings",
+                    ReleaseDate = new DateTime(1954, 07, 27),
+                    Isbn = "9780544003415",
+                    Rating = 10,
+                    Authors = new List<Author> { seededAuthor02 }
+                });
+                context.Books.Add(seededBooks[3]);
 
                 context.SaveChanges(); // Save in between 
 
-                LibraryCard seededLibraryCard01 = new LibraryCard();
-                seededLibraryCard01.CardNumber = "84741823";
-                seededLibraryCard01.Pin = "4817";
-                seededLibraryCard01.FirstName = "John";
-                seededLibraryCard01.LastName = "Doe";
-                context.LibraryCards.Add(seededLibraryCard01);
+                List<string> firstNames = new List<string>() { "John", "Jane", "Jörgen", "Elsa", "Freja", "Jens", "Gabriel", "Wilmer", "Krister", "Madeleine", "Harry" };
+                List<string> lastNames = new List<string>() { "Vikström", "Ekström", "Doe", "Dane", "Musk", "Thatcher", "Marley", "Ford", "Zimmerman", "Wilson", "Dawson" };
 
-                LibraryCard seededLibraryCard02 = new LibraryCard();
-                seededLibraryCard02.CardNumber = "74943765";
-                seededLibraryCard02.Pin = "8236";
-                seededLibraryCard02.FirstName = "Jane";
-                seededLibraryCard02.LastName = "Dane";
-                context.LibraryCards.Add(seededLibraryCard02);
+                // Generate library cards and loans
+                Random rnd = new Random();
+                for(int i = 0; i < 15; i++)
+                {
+                    LibraryCard seededLibraryCard = new LibraryCard();
+                    seededLibraryCard.CardNumber = rnd.Next(10000000, 99999999).ToString();
+                    seededLibraryCard.Pin = rnd.Next(1000, 9999).ToString();
+                    seededLibraryCard.FirstName = firstNames[rnd.Next(0, firstNames.Count())];
+                    seededLibraryCard.LastName = lastNames[rnd.Next(0, lastNames.Count())];
+                    context.LibraryCards.Add(seededLibraryCard);
+
+                    context.SaveChanges(); // Save so the loan can get the correct librarycard ID from DB.
+
+                    for (int j = 0; j < rnd.Next(1, 4); j++) {
+                        Loan seededLoan = new Loan();
+                        seededLoan.BookId = seededBooks[rnd.Next(0, seededBooks.Count())].Id;
+                        seededLoan.LibraryCardId = seededLibraryCard.Id;
+                        seededLoan.LoanDate = new DateTime(rnd.Next(2015, 2023), rnd.Next(1, 13), rnd.Next(1, 29), rnd.Next(0, 24), rnd.Next(0, 60), rnd.Next(0, 60), rnd.Next(0, 1000));
+
+                        if (rnd.Next(0, 2) == 1)
+                        {
+                            seededLoan.IsBorrowed = false;
+                            seededLoan.ReturnDate = seededLoan.LoanDate + TimeSpan.FromDays(rnd.Next(1, 60));
+                        }
+                        else
+                        {
+                            seededLoan.IsBorrowed = true;
+                        }
+                        context.Loans.Add(seededLoan);
+                    }
+                }
 
                 context.SaveChanges();
-
-                Loan seededLoan01 = new Loan();
-                seededLoan01.BookId = seededBook01.Id;
-                seededLoan01.LibraryCardId = seededLibraryCard01.Id;
-                seededLoan01.LoanDate = new DateTime(2023, 02, 05);
-                seededLoan01.IsBorrowed = true;
-                context.Loans.Add(seededLoan01);
-
-                Loan seededLoan02 = new Loan();
-                seededLoan02.BookId = seededBook03.Id;
-                seededLoan02.LibraryCardId = seededLibraryCard02.Id;
-                seededLoan02.LoanDate = new DateTime(2022, 05, 20);
-                seededLoan02.ReturnDate = new DateTime(2023, 05, 21);
-                seededLoan02.IsBorrowed = false;
-                context.Loans.Add(seededLoan02);
-
-                context.SaveChanges();
-
                 Console.WriteLine("Done!");
             }
+        }
+
+        public static int GetIntChoice(ConsoleCompanionHelper cc, int minChoice, int maxChoice)
+        {
+            int choice;
+            do
+            {
+                choice = cc.AskForInt("");
+                if (choice > maxChoice || choice < minChoice)
+                    Console.WriteLine($"Number must be between {minChoice}-{maxChoice}.");
+            } while (choice > maxChoice || choice < minChoice);
+
+            return choice;
         }
 
         /// <summary>
@@ -363,7 +468,7 @@ namespace NewtonLibrary_Gabriel.Data
             // Keep trying to ask to select a valid book name in DB.
             do
             {
-                string bookName = cc.AskForString("Enter title of book: ");
+                string bookName = cc.AskForString("Enter title of book: ").Trim();
                 int? bookId;
 
                 bookId = context.Books
@@ -392,23 +497,29 @@ namespace NewtonLibrary_Gabriel.Data
         {
             do
             {
-                string cardNumber = cc.AskForString("Enter the cardnumber: ");
-                int? borrowerId;
+                string cardNumber = cc.AskForString("Enter the cardnumber: ").Trim();
 
-                borrowerId = context.LibraryCards
+                LibraryCard? borrower = context.LibraryCards
                     .Where(book => book.CardNumber == cardNumber)
-                    .Select(book => (int?)book.Id)
                     .FirstOrDefault();
 
-                if (borrowerId == null)
+                if (borrower == null)
                 {
                     Console.WriteLine("Borrower not found. Please retry.");
+                    return -1;
+                }
+
+                string cardPin = cc.AskForString("Enter the PIN code: ").Trim();
+                if (cardPin != borrower.Pin)
+                {
+                    Console.WriteLine("You entered the wrong PIN code!");
+                    return -1;
                 }
                 else // Found the borrower with the card number
                 {
-                    return (int)borrowerId;
-
+                    return borrower.Id;
                 }
+
             } while (true);
         }
     }
