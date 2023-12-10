@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using EntityFrameworkCore.EncryptColumn;
-using EntityFrameworkCore.EncryptColumn.Attribute;
+﻿using EntityFrameworkCore.EncryptColumn.Attribute;
 
 namespace NewtonLibrary_Gabriel.Models
 {

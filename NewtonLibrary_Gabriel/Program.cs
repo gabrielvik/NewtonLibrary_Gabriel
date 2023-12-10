@@ -1,9 +1,5 @@
-﻿using Azure.Core;
-using ConsoleCompanion;
+﻿using ConsoleCompanion;
 using NewtonLibrary_Gabriel.Data;
-using NewtonLibrary_Gabriel.Models;
-using System.Globalization;
-using System.Net;
 
 namespace NewtonLibrary_Gabriel
 {

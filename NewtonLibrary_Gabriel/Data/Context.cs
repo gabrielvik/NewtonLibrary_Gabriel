@@ -2,16 +2,6 @@
 using EntityFrameworkCore.EncryptColumn.Util;
 using Microsoft.EntityFrameworkCore;
 using NewtonLibrary_Gabriel.Models;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using EntityFrameworkCore.EncryptColumn;
-using EntityFrameworkCore.EncryptColumn.Attribute;
-using Microsoft.Extensions.Options;
 using EntityFrameworkCore.EncryptColumn.Extension;
 
 namespace NewtonLibrary_Gabriel.Data

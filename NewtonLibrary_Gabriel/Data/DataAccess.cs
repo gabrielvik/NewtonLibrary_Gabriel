@@ -1,9 +1,6 @@
 ﻿using ConsoleCompanion;
 using NewtonLibrary_Gabriel.Models;
 using System.Globalization;
-using System.Net;
-using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace NewtonLibrary_Gabriel.Data
 {
